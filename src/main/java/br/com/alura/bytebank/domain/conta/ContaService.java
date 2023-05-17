@@ -23,7 +23,8 @@ public class ContaService {
     private Set<Conta> contas = new HashSet<>();
 
     public Set<Conta> listarContasAbertas() {
-        return contas;
+        Connection conn = connection.recuperarConexao();
+        return new ContaDAO(conn).listar();
     }
 
     public BigDecimal consultarSaldo(Integer numeroDaConta) {
@@ -32,29 +33,10 @@ public class ContaService {
     }
 
     public void abrir(DadosAberturaConta dadosDaConta) {
-        var cliente = new Cliente(dadosDaConta.dadosCliente());
-        var conta = new Conta(dadosDaConta.numero(), cliente);
-        if (contas.contains(conta)) {
-            throw new RegraDeNegocioException("Já existe outra conta aberta com o mesmo número!");
-        }
-
-        String sql = "INSERT INTO conta (numero, saldo, cliente_nome, cliente_cpf, cliente_email)" +
-                "VALUES (?, ?, ?, ?, ?)";
 
         Connection conn = connection.recuperarConexao();
+        new ContaDAO(conn).salvar(dadosDaConta);
 
-        try {
-            PreparedStatement preparedStatement= conn.prepareStatement(sql);
-
-            preparedStatement.setInt(1, conta.getNumero());
-            preparedStatement.setBigDecimal(2, BigDecimal.ZERO);
-            preparedStatement.setString(3, dadosDaConta.dadosCliente().nome());
-            preparedStatement.setString(4, dadosDaConta.dadosCliente().cpf());
-            preparedStatement.setString(5, dadosDaConta.dadosCliente().email());
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void realizarSaque(Integer numeroDaConta, BigDecimal valor) {
