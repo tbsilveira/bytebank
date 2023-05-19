@@ -70,11 +70,21 @@ public class ContaService {
         contas.remove(conta);
     }
 
-    private Conta buscarContaPorNumero(Integer numero) {
-        return contas
-                .stream()
-                .filter(c -> c.getNumero() == numero)
-                .findFirst()
-                .orElseThrow(() -> new RegraDeNegocioException("Não existe conta cadastrada com esse número!"));
+    public Conta buscarContaPorNumero(Integer numero) {
+        Connection conn = connection.recuperarConexao();
+        Conta conta = new ContaDAO(conn).listarPorNumero(numero);
+        if (conta != null) {
+            System.out.println("Conta: " + conta.getNumero() + ", Saldo: " + conta.getSaldo() + ", Titular: " + conta.getTitular().getNome());
+            return conta;
+        } else {
+            throw new RegraDeNegocioException("Não existe conta cadastrada com este número");
+        }
+
+
+//        return contas
+//                .stream()
+//                .filter(c -> c.getNumero() == numero)
+//                .findFirst()
+//                .orElseThrow(() -> new RegraDeNegocioException("Não existe conta cadastrada com esse número!"));
     }
 }
